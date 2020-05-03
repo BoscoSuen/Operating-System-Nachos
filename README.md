@@ -1,4 +1,4 @@
-# CSE120 Project -- Nachos
+# CSE120 Operating System Project -- Nachos
 
 Welcome to Nachos for Java. We believe that working in Java rather than
 C++ will greatly simplify the development process by preventing bugs
