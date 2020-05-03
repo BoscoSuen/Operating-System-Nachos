@@ -6,21 +6,30 @@ machine =	Lib Config Stats Machine TCB \
 		Processor TranslationEntry \
 		SerialConsole StandardConsole \
 		OpenFile OpenFileWithPosition ArrayFile FileSystem StubFileSystem \
-		ElevatorBank ElevatorTest ElevatorGui \
-		ElevatorControls ElevatorEvent ElevatorControllerInterface \
-		RiderControls RiderEvent RiderInterface \
 		Kernel Coff CoffSection \
 		NetworkLink Packet MalformedPacketException
 
+#		ElevatorBank ElevatorTest ElevatorGui \
+#		ElevatorControls ElevatorEvent ElevatorControllerInterface \
+#		RiderControls RiderEvent RiderInterface \
+
 security =	Privilege NachosSecurityManager
 
-ag =		AutoGrader BoatGrader
+ag =		AutoGrader
+
+# BoatGrader
 
 threads =	ThreadedKernel KThread Alarm \
 		Scheduler ThreadQueue RoundRobinScheduler \
 		Semaphore Lock Condition SynchList \
-		Condition2 Communicator Rider ElevatorController \
-		PriorityScheduler LotteryScheduler Boat
+		Condition2 \
+		Rendezvous \
+		PriorityScheduler LotteryScheduler
+
+#		Communicator \
+#		GameMatch SquadMatch \
+#		Rider ElevatorController \
+#		Boat
 
 userprog =	UserKernel UThread UserProcess SynchConsole
 

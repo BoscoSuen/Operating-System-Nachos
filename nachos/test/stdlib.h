@@ -10,6 +10,7 @@
 #include "syscall.h"
 
 #define null	0L
+#define NULL	((void *) 0)
 #define true	1
 #define false	0
 
@@ -33,5 +34,8 @@ int strcmp(const char *a, const char *b);
 int strncmp(const char *a, const char *b, int n);
 
 int atoi(const char *s);
+
+int rand(void);
+void srand(unsigned int seed);
 
 #endif // STDLIB_H

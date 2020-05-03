@@ -18,6 +18,7 @@ public class Alarm {
 		Machine.timer().setInterruptHandler(new Runnable() {
 			public void run() {
 				timerInterrupt();
+
 			}
 		});
 	}
@@ -49,5 +50,18 @@ public class Alarm {
 		long wakeTime = Machine.timer().getTime() + x;
 		while (wakeTime > Machine.timer().getTime())
 			KThread.yield();
+	}
+
+        /**
+	 * Cancel any timer set by <i>thread</i>, effectively waking
+	 * up the thread immediately (placing it in the scheduler
+	 * ready set) and returning true.  If <i>thread</i> has no
+	 * timer set, return false.
+	 * 
+	 * <p>
+	 * @param thread the thread whose timer should be cancelled.
+	 */
+        public boolean cancel(KThread thread) {
+		return false;
 	}
 }

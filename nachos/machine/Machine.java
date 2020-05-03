@@ -18,8 +18,19 @@ public final class Machine {
 	 * @param args the command line arguments.
 	 */
 	public static void main(final String[] args) {
-		System.out.print("nachos 5.0j initializing...");
+		// in newer versions of Java, using String.format will
+		// trigger java.util.Local to dynamically initialize
+		// its default value.  in so doing it requests write
+		// permissions on the system properties.  if student
+		// code uses it once Nachos has started, it will
+		// trigger a SecurityException and fail.  as a
+		// convenient workaround, the following statement will
+		// safely initialize java.util.Local on behalf of
+		// student code that wants to use it.
 
+	        String s = String.format("nachos %d.0j initializing...", 5);
+	        System.out.print(s);
+		
 		Lib.assertTrue(Machine.args == null);
 		Machine.args = args;
 
@@ -212,7 +223,7 @@ public final class Machine {
 		Class clsThreadedKernel = Lib
 				.loadClass("nachos.threads.ThreadedKernel");
 		Class clsKThread = Lib.loadClass("nachos.threads.KThread");
-		Class clsCommunicator = Lib.loadClass("nachos.threads.Communicator");
+		//Class clsCommunicator = Lib.loadClass("nachos.threads.Communicator");
 		Class clsSemaphore = Lib.loadClass("nachos.threads.Semaphore");
 		Class clsLock = Lib.loadClass("nachos.threads.Lock");
 		Class clsCondition = Lib.loadClass("nachos.threads.Condition");
@@ -249,10 +260,10 @@ public final class Machine {
 
 		Lib.checkField(clsKThread, "schedulingState", clsObject);
 
-		Lib.checkConstructor(clsCommunicator, new Class[] {});
-		Lib.checkMethod(clsCommunicator, "speak", new Class[] { int.class },
-				void.class);
-		Lib.checkMethod(clsCommunicator, "listen", new Class[] {}, int.class);
+		//Lib.checkConstructor(clsCommunicator, new Class[] {});
+		//Lib.checkMethod(clsCommunicator, "speak", new Class[] { int.class },
+		//void.class);
+                //Lib.checkMethod(clsCommunicator, "listen", new Class[] {}, int.class);
 
 		Lib.checkConstructor(clsSemaphore, new Class[] { int.class });
 		Lib.checkMethod(clsSemaphore, "P", new Class[] {}, void.class);

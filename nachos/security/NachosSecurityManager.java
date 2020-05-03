@@ -10,6 +10,7 @@ import java.io.FilePermission;
 import java.util.PropertyPermission;
 import java.net.NetPermission;
 import java.awt.AWTPermission;
+import java.lang.reflect.ReflectPermission;
 import java.security.PrivilegedAction;
 import java.security.PrivilegedExceptionAction;
 import java.security.PrivilegedActionException;
@@ -184,6 +185,16 @@ public class NachosSecurityManager extends SecurityManager {
 			// no creating class loaders
 			if (name.equals("createClassLoader"))
 				no(perm);
+			// required for lambda expressions
+			if (name.equals("getProtectionDomain") ||
+			    name.equals("accessDeclaredMembers"))
+			    return;
+		}
+
+		// required for lambda expressions
+		if (perm instanceof ReflectPermission) {
+		        if (name.equals("suppressAccessChecks"))
+			    return;
 		}
 
 		// allow the AWT mess when not grading

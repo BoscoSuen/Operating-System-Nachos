@@ -567,7 +567,7 @@ public final class ElevatorBank implements Runnable {
 				return false;
 
 			inElevator = false;
-			floors.add(new Integer(floor));
+			floors.add(Integer.valueOf(floor));
 
 			if (gui != null)
 				gui.exitElevator(floor, elevator);

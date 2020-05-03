@@ -507,10 +507,11 @@ public final class Lib {
 			// kamil - workaround for Java 1.4
 			// Thanks to Ka-Hing Cheung for the suggestion.
 			// Fixed for Java 1.5 by geels
-			Class[] param_types = new Class[0];
+		        Class<?> cls = loadClass(className);
+			Class<?>[] param_types = new Class[0];
+			Constructor<?> cons = cls.getConstructor(param_types);
 			Object[] params = new Object[0];
-			return loadClass(className).getConstructor(param_types)
-					.newInstance(params);
+			return cons.newInstance(params);
 		}
 		catch (Throwable e) {
 			Machine.terminate(e);
@@ -536,11 +537,11 @@ public final class Lib {
 	 * @param cls the class containing the constructor.
 	 * @param parameterTypes the list of parameters.
 	 */
-	public static void checkConstructor(Class cls, Class[] parameterTypes) {
+	public static void checkConstructor(Class<?> cls, Class[] parameterTypes) {
 		try {
 			Lib.assertTrue(Modifier.isPublic(cls.getModifiers())
 					&& !Modifier.isAbstract(cls.getModifiers()));
-			Constructor constructor = cls.getConstructor(parameterTypes);
+			Constructor<?> constructor = cls.getConstructor(parameterTypes);
 			Lib.assertTrue(Modifier.isPublic(constructor.getModifiers()));
 		}
 		catch (Exception e) {
@@ -558,7 +559,7 @@ public final class Lib {
 	 * @param parameterTypes the list of parameters.
 	 * @param returnType the required return type.
 	 */
-	public static void checkMethod(Class cls, String methodName,
+	public static void checkMethod(Class<?> cls, String methodName,
 			Class[] parameterTypes, Class returnType) {
 		try {
 			Lib.assertTrue(Modifier.isPublic(cls.getModifiers()));
@@ -582,7 +583,7 @@ public final class Lib {
 	 * @param parameterTypes the list of parameters.
 	 * @param returnType the required return type.
 	 */
-	public static void checkStaticMethod(Class cls, String methodName,
+	public static void checkStaticMethod(Class<?> cls, String methodName,
 			Class[] parameterTypes, Class returnType) {
 		try {
 			Lib.assertTrue(Modifier.isPublic(cls.getModifiers()));

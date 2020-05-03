@@ -1,0 +1,10 @@
+{
+    "sshfs.configs": [
+        {
+            "host": "ieng6.ucsd.edu",
+            "name": "CSE120-ieng6",
+            "password": "Suen0798",
+            "root": "/home/linux/ieng6/oce/69/zhs003/nachos_sp20_CathyWang53_Yukinichi_isguoqiang"
+        }
+    ]
+}

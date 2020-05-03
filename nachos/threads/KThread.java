@@ -302,7 +302,7 @@ public class KThread {
 		idleThread = new KThread(new Runnable() {
 			public void run() {
 				while (true)
-					yield();
+					KThread.yield();
 			}
 		});
 		idleThread.setName("idle");
@@ -398,7 +398,7 @@ public class KThread {
 
 		public void run() {
 			for (int i = 0; i < 5; i++) {
-				System.out.println("*** awesome thread " + which + " looped " + i
+				System.out.println("*** thread " + which + " looped " + i
 						+ " times");
 				currentThread.yield();
 			}

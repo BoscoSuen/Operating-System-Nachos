@@ -61,8 +61,7 @@ void halt();
  * have a parent process.
  *
  * status is returned to the parent process as this process's exit status and
- * can be collected using the join syscall. A process exiting normally should
- * (but is not required to) set status to 0.
+ * can be collected using the join syscall.
  *
  * exit() never returns.
  */
@@ -121,7 +120,8 @@ int join(int processID, int *status);
 
 /**
  * Attempt to open the named disk file, creating it if it does not exist,
- * and return a file descriptor that can be used to access the file.
+ * and return a file descriptor that can be used to access the file. If
+ * the file already exists, creat truncates it.
  *
  * Note that creat() can only be used to create files on disk; creat() will
  * never return a file descriptor referring to a stream.

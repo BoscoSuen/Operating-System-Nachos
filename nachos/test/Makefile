@@ -13,7 +13,7 @@ GCCDIR = $(ARCHDIR)/mips-
 
 ASFLAGS = -mips1
 CPPFLAGS =
-CFLAGS = -O2 -B$(GCCDIR) -G 0 -Wa,-mips1 -nostdlib -ffreestanding
+CFLAGS = -O2 -B$(GCCDIR) -G 0 -Wa,-mips1 -nostdlib -ffreestanding -std=gnu99
 LDFLAGS = -s -T script -N -warn-common -warn-constructors -warn-multiple-gp
 
 CC = $(GCCDIR)gcc
@@ -27,7 +27,7 @@ STDLIB_H = stdio.h stdlib.h ag.h
 STDLIB_C = stdio.c stdlib.c
 STDLIB_O = start.o stdio.o stdlib.o
 
-LIB = assert atoi printf readline stdio strncmp strcat strcmp strcpy strlen memcpy memset
+LIB = assert atoi printf readline stdio strncmp strcat strcmp strcpy strlen memcpy memset rand
 NLIB = libnachos.a
 
 TARGETS = halt sh matmult sort echo cat cp mv rm

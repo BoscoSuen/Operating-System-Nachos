@@ -132,7 +132,7 @@ public final class Config {
 			if (value == null)
 				return null;
 
-			return new Integer(value);
+			return Integer.valueOf(value);
 		}
 		catch (NumberFormatException e) {
 			configError(key + " should be an integer");
@@ -181,7 +181,7 @@ public final class Config {
 			if (value == null)
 				return null;
 
-			return new Double(value);
+			return Double.valueOf(value);
 		}
 		catch (NumberFormatException e) {
 			configError(key + " should be a double");

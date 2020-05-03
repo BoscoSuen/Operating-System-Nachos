@@ -53,5 +53,17 @@ public class Condition2 {
 		Lib.assertTrue(conditionLock.isHeldByCurrentThread());
 	}
 
-	private Lock conditionLock;
+        /**
+	 * Atomically release the associated lock and go to sleep on
+	 * this condition variable until either (1) another thread
+	 * wakes it using <tt>wake()</tt>, or (2) the specified
+	 * <i>timeout</i> elapses.  The current thread must hold the
+	 * associated lock.  The thread will automatically reacquire
+	 * the lock before <tt>sleep()</tt> returns.
+	 */
+        public void sleepFor(long timeout) {
+		Lib.assertTrue(conditionLock.isHeldByCurrentThread());
+	}
+
+        private Lock conditionLock;
 }

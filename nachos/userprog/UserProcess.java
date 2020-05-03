@@ -66,7 +66,8 @@ public class UserProcess {
 		if (!load(name, args))
 			return false;
 
-		new UThread(this).setName(name).fork();
+		thread = new UThread(this);
+		thread.setName(name).fork();
 
 		return true;
 	}
@@ -366,6 +367,10 @@ public class UserProcess {
 		// ...and leave it as the top of handleExit so that we
 		// can grade your implementation.
 
+		Lib.debug(dbgProcess, "UserProcess.handleExit (" + status + ")");
+		// for now, unconditionally terminate with just one process
+		Kernel.kernel.terminate();
+
 		return 0;
 	}
 
@@ -489,6 +494,9 @@ public class UserProcess {
 	/** The number of pages in the program's stack. */
 	protected final int stackPages = 8;
 
+	/** The thread that executes the user-level program. */
+        protected UThread thread;
+    
 	private int initialPC, initialSP;
 
 	private int argc, argv;
