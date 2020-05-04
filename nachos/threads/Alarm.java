@@ -16,7 +16,7 @@ public class Alarm {
 	 * <b>Note</b>: Nachos will not function correctly with more than one alarm.
 	 */
 	public Alarm() {
-		waitingTimeMap = new TreeMap<>();
+		waitingPq = new PriorityQueue<>((a,b) -> ((int)(a.wakeUpTime - b.wakeUpTime)));
 		Machine.timer().setInterruptHandler(new Runnable() {
 			public void run() {
 				timerInterrupt();
@@ -33,8 +33,8 @@ public class Alarm {
 	public void timerInterrupt() {
 		boolean disableInterruptResult = Machine.interrupt().disable();
 		long curTime = Machine.timer().getTime();
-		while (!waitingTimeMap.isEmpty() && waitingTimeMap.floorKey(curTime) != null) {
-			KThread unblockedThread = waitingTimeMap.pollFirstEntry().getValue();
+		while (!waitingPq.isEmpty() && waitingPq.peek().getWakeUpTime() <= curTime) {
+			KThread unblockedThread = waitingPq.poll().getThread();
 			unblockedThread.ready();
 		}
 		Machine.interrupt().restore(disableInterruptResult);
@@ -60,9 +60,9 @@ public class Alarm {
 		// TODO: implement your own waiting queue
 		long wakeTime = Machine.timer().getTime() + x;
 		boolean disableInterruptResult = Machine.interrupt().disable();
-		waitingTimeMap.put(wakeTime, KThread.currentThread());
-		KThread.sleep();	// block the current thread
-		Machine.interrupt().restore(disableInterruptResult);	// restore the interrupt
+		waitingPq.offer(new WaitingThread(wakeTime, KThread.currentThread()));
+		KThread.sleep();											// block the current thread
+		Machine.interrupt().restore(disableInterruptResult);		// restore the interrupt
 	}
 
         /**
@@ -75,17 +75,63 @@ public class Alarm {
 	 * @param thread the thread whose timer should be cancelled.
 	 */
 	public boolean cancel(KThread thread) {
+		boolean disableInterruptResult = Machine.interrupt().disable();
+		for (WaitingThread waitingThread : waitingPq) {
+			if (waitingThread.getThread() == thread) {
+				KThread curThread = waitingThread.getThread();
+				waitingPq.remove(waitingThread);
+				curThread.ready();
+				Machine.interrupt().restore(disableInterruptResult);
+				return true;
+			}
+		}
+		Machine.interrupt().restore(disableInterruptResult);
 		return false;
 	}
+
+
+	public class WaitingThread {
+		public WaitingThread(long wakeUpTime, KThread thread) {
+			this.wakeUpTime = wakeUpTime;
+			this.thread = thread;
+		}
+
+		public KThread getThread() { return this.thread; }
+		public long getWakeUpTime() { return this.wakeUpTime; }
+
+		private long wakeUpTime;
+		private KThread thread;
+	}
+
+	private PriorityQueue<WaitingThread> waitingPq;
 
 	/**
 	 * Self Test for Alarm class
 	 */
+
+	public static class AlarmRun implements Runnable {
+		public AlarmRun(int threadNum, int waitTime) {
+			this.threadNum = threadNum;
+			this.waitTime = waitTime;
+		}
+
+		public void run() {
+			System.out.println("The thread " + threadNum + "block at " + Machine.timer().getTime());
+			ThreadedKernel.alarm.waitUntil(waitTime);
+			System.out.println("The thread " + threadNum + "unblock at " + Machine.timer().getTime());
+		}
+		private int threadNum;
+		private int waitTime;
+	}
+
 	public static void selfTest() {
 		alarmTest1();
+		alarmTest2();
+		System.out.println("\nFinish Alarm Self Test\n");
 	}
 
 	public static void alarmTest1() {
+		System.out.println("Alarm Test1: base test");
 		int durations[] = {1000, 10*1000, 100*1000};
 		long t0, t1;
 		for (int d : durations) {
@@ -95,5 +141,18 @@ public class Alarm {
 			System.out.println ("alarmTest1: waited for " + (t1 - t0) + " ticks");
 		}
 	}
-	private TreeMap<Long, KThread> waitingTimeMap;
+
+	public static void alarmTest2() {
+		System.out.println("\nAlarm Test2:");
+		KThread kThread1 = new KThread(new AlarmRun(1, 500));
+		kThread1.fork();
+		KThread kThread2 = new KThread(new AlarmRun(2,1000));
+		kThread2.fork();
+//		TODO: join
+//		kThread1.join();
+//		kThread2.join();
+		AlarmRun wait = new AlarmRun(0, 5000);
+		wait.run();
+	}
+
 }
