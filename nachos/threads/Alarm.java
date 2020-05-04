@@ -16,8 +16,7 @@ public class Alarm {
 	 * <b>Note</b>: Nachos will not function correctly with more than one alarm.
 	 */
 	public Alarm() {
-		waitingQueue = new LinkedList<>();
-		waitingTimeMap = new HashMap<>();
+		waitingTimeMap = new TreeMap<>();
 		Machine.timer().setInterruptHandler(new Runnable() {
 			public void run() {
 				timerInterrupt();
@@ -34,11 +33,12 @@ public class Alarm {
 	public void timerInterrupt() {
 		boolean disableInterruptResult = Machine.interrupt().disable();
 		long curTime = Machine.timer().getTime();
-		while (!waitingQueue.isEmpty() && waitingTimeMap.get(waitingQueue.peek()) <= curTime) {
-			KThread unblockedThread = waitingQueue.poll();
+		while (!waitingTimeMap.isEmpty() && waitingTimeMap.floorKey(curTime) != null) {
+			KThread unblockedThread = waitingTimeMap.pollFirstEntry().getValue();
 			unblockedThread.ready();
 		}
 		Machine.interrupt().restore(disableInterruptResult);
+		KThread.yield();		// forcing a context switch
 	}
 
 	/**
@@ -54,18 +54,15 @@ public class Alarm {
 	 * @see nachos.machine.Timer#getTime()
 	 */
 	public void waitUntil(long x) {
-		// the thread must wait for at least X times
 		// for now, cheat just to get something working (busy waiting is bad)
-		// yield: give up the current CPU, put it on the ready queue, will not block!
 		// TODO: use KThread.sleep() to block, use KThread.ready() to unblock  it
 		// TODO: disable interrupt to deal with mutual exclusion
 		// TODO: implement your own waiting queue
 		long wakeTime = Machine.timer().getTime() + x;
 		boolean disableInterruptResult = Machine.interrupt().disable();
-		waitingQueue.offer(KThread.currentThread());
-		waitingTimeMap.put(KThread.currentThread(), wakeTime);
-		KThread.sleep();		// block the current thread
-		Machine.interrupt().restore(disableInterruptResult);		// restore the interrupt
+		waitingTimeMap.put(wakeTime, KThread.currentThread());
+		KThread.sleep();	// block the current thread
+		Machine.interrupt().restore(disableInterruptResult);	// restore the interrupt
 	}
 
         /**
@@ -81,6 +78,22 @@ public class Alarm {
 		return false;
 	}
 
-	private Queue<KThread> waitingQueue;
-	private Map<KThread, Long> waitingTimeMap;
+	/**
+	 * Self Test for Alarm class
+	 */
+	public static void selfTest() {
+		alarmTest1();
+	}
+
+	public static void alarmTest1() {
+		int durations[] = {1000, 10*1000, 100*1000};
+		long t0, t1;
+		for (int d : durations) {
+			t0 = Machine.timer().getTime();
+			ThreadedKernel.alarm.waitUntil(d);
+			t1 = Machine.timer().getTime();
+			System.out.println ("alarmTest1: waited for " + (t1 - t0) + " ticks");
+		}
+	}
+	private TreeMap<Long, KThread> waitingTimeMap;
 }
