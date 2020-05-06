@@ -2,6 +2,7 @@ package nachos.threads;
 
 import nachos.machine.*;
 
+import javax.swing.plaf.SliderUI;
 import java.util.LinkedList;
 import java.util.Queue;
 
@@ -54,7 +55,8 @@ public class Condition2 {
 	public void wake() {
 		Lib.assertTrue(conditionLock.isHeldByCurrentThread());
 		boolean intStatus = Machine.interrupt().disable();
-		if ((threadTobeWake = waitQueue.poll()) != null) {
+		if ((threadTobeWake = waitQueue.poll()) != null
+			&& !ThreadedKernel.alarm.cancel(threadTobeWake)) {
 			threadTobeWake.ready();
 		}
 		Machine.interrupt().restore(intStatus);
@@ -67,7 +69,8 @@ public class Condition2 {
 	public void wakeAll() {
 		Lib.assertTrue(conditionLock.isHeldByCurrentThread());
 		boolean intStatus = Machine.interrupt().disable();
-		while ((threadTobeWake = waitQueue.poll()) != null) {
+		while ((threadTobeWake = waitQueue.poll()) != null
+			&& !ThreadedKernel.alarm.cancel(threadTobeWake)) {
 			threadTobeWake.ready();
 		}
 		Machine.interrupt().restore(intStatus);
@@ -141,15 +144,86 @@ public class Condition2 {
 			// call to join and instead uncomment the loop with
 			// yields; the loop has the same effect, but is a kludgy
 			// way to do it.
-			ping.join();
-			// for (int i = 0; i < 50; i++) { KThread.currentThread().yield(); }
+//			ping.join();
+			 for (int i = 0; i < 50; i++) { KThread.currentThread().yield(); }
+		}
+	}
+
+	public static class SleepForTest {
+		private static Lock lock;
+		private static Condition2 cv;
+
+		public static class sleepForTester implements Runnable {
+			@Override
+			public void run() {
+				lock.acquire();
+				for (int i = 0; i < 10; i++) {
+					System.out.println(KThread.currentThread().getName());
+					cv.wake();   // signal
+					cv.sleepFor(i * 100);  // wait
+				}
+				lock.release();
+			}
+		}
+
+		public SleepForTest() {
+			lock = new Lock();
+			cv = new Condition2(lock);
+			KThread ping = new KThread(new SleepForTest.sleepForTester());
+			ping.setName("ping");
+			KThread pong = new KThread(new SleepForTest.sleepForTester());
+			pong.setName("pong");
+
+			ping.fork();
+			pong.fork();
+			for (int i = 0; i < 50; i++) { KThread.currentThread().yield(); }
+		}
+
+	}
+
+	public static class WakeAllTest {
+		private static Lock lock;
+		private static Condition2 cv;
+
+		public static class WakeAllTester implements Runnable {
+			@Override
+			public void run() {
+				lock.acquire();
+				for (int i = 0; i < 10; i++) {
+					System.out.println(KThread.currentThread().getName());
+					cv.wakeAll();   // signal
+					cv.sleepFor(i * 200);  // wait
+				}
+			}
+		}
+		public WakeAllTest() {
+			lock = new Lock();
+			cv = new Condition2(lock);
+			KThread ping = new KThread(new SleepForTest.sleepForTester());
+			ping.setName("ping");
+			KThread pong = new KThread(new SleepForTest.sleepForTester());
+			pong.setName("pong");
+
+			ping.fork();
+			pong.fork();
+			for (int i = 0; i < 50; i++) { KThread.currentThread().yield(); }
 		}
 	}
 
 	// Invoke Condition2.selfTest() from ThreadedKernel.selfTest()
 
 	public static void selfTest() {
+		System.out.println("Begin Condition2 InterlockTest test");
 		new InterlockTest();
+		System.out.println("Finish Condition2 InterlockTest test");
+
+		System.out.println("Begin Condition2 SleepFor Test");
+		new SleepForTest();
+		System.out.println("Finish Condition2 SleepFor Test");
+
+		System.out.println("Begin Condition2 WakeAll Test");
+		new WakeAllTest();
+		System.out.println("Finish Condition2 WakeAll Test");
 	}
 
 }
