@@ -1,0 +1,7 @@
+set -e
+for ((n=0;n<1000000;n++))
+do
+command="../bin/nachos -s ${n}"
+echo ${command}
+eval ${command}
+done

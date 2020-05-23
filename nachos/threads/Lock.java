@@ -25,6 +25,16 @@ public class Lock {
 	public Lock() {
 	}
 
+	private String name = " ";
+
+	public Lock(String name){
+		this.name = name;
+	}
+
+	public String getName(){
+		return name;
+	}
+
 	/**
 	 * Atomically acquire this lock. The current thread must not already hold
 	 * this lock.
@@ -33,6 +43,7 @@ public class Lock {
 		Lib.assertTrue(!isHeldByCurrentThread());
 
 		boolean intStatus = Machine.interrupt().disable();
+//		System.out.println("enter acquiring lock "+ this.getName() + " " + this.toString());
 		KThread thread = KThread.currentThread();
 
 		if (lockHolder != null) {
@@ -56,9 +67,13 @@ public class Lock {
 		Lib.assertTrue(isHeldByCurrentThread());
 
 		boolean intStatus = Machine.interrupt().disable();
+//		System.out.println("enter releasing lock "+ this.getName() + " " + this.toString());
 
-		if ((lockHolder = waitQueue.nextThread()) != null)
+		if ((lockHolder = waitQueue.nextThread()) != null){
 			lockHolder.ready();
+//			System.out.println("relase lock to "+lockHolder.toString());
+		}
+
 
 		Machine.interrupt().restore(intStatus);
 	}

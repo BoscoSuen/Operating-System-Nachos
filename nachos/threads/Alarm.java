@@ -7,6 +7,9 @@ import nachos.machine.*;
  * Uses the hardware timer to provide preemption, and to allow threads to sleep
  * until a certain time.
  */
+
+
+
 public class Alarm {
 	/**
 	 * Allocate a new Alarm. Set the machine's timer interrupt handler to this
@@ -35,7 +38,9 @@ public class Alarm {
 		long curTime = Machine.timer().getTime();
 		while (!waitingPq.isEmpty() && waitingPq.peek().getWakeUpTime() <= curTime) {
 			KThread unblockedThread = waitingPq.poll().getThread();
-			unblockedThread.ready();
+			if (unblockedThread.isBlocked()) {
+				unblockedThread.ready();
+			}
 		}
 		Machine.interrupt().restore(disableInterruptResult);
 		KThread.yield();		// forcing a context switch
@@ -60,6 +65,10 @@ public class Alarm {
 		// TODO: implement your own waiting queue
 		long wakeTime = Machine.timer().getTime() + x;
 		boolean disableInterruptResult = Machine.interrupt().disable();
+		if (x <= 0) {
+			Machine.interrupt().restore(disableInterruptResult);
+			return;
+		}
 		waitingPq.offer(new WaitingThread(wakeTime, KThread.currentThread()));
 		KThread.sleep();											// block the current thread
 		Machine.interrupt().restore(disableInterruptResult);		// restore the interrupt
@@ -148,9 +157,8 @@ public class Alarm {
 		kThread1.fork();
 		KThread kThread2 = new KThread(new AlarmRun(2,1000));
 		kThread2.fork();
-//		TODO: join
-//		kThread1.join();
-//		kThread2.join();
+		kThread1.join();
+		kThread2.join();
 		AlarmRun wait = new AlarmRun(0, 5000);
 		wait.run();
 	}

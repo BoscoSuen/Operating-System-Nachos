@@ -295,11 +295,11 @@ public class KThread {
 		this.joinThread = currentThread();
 
 		if (this.status != statusFinished) {
-			Lib.debug(dbgThread, "I, " +currentThread.id + ", will be sleeping until joined thread finish " );
+			Lib.debug(dbgThread, "I, " +currentThread.toString() + ", will be sleeping until joined thread finish " );
 			this.joinThread.sleep();
 		}
 		else{
-			Lib.debug(dbgThread, "I, " +currentThread.id + ", am not sleeping");
+			Lib.debug(dbgThread, "I, " +currentThread.toString() + ", won't sleep");
 		}
 
 		Machine.interrupt().restore(intStatus);
@@ -358,7 +358,7 @@ public class KThread {
 	 * from running to blocked or ready (depending on whether the thread is
 	 * sleeping or yielding).
 	 * 
-	 * @param finishing <tt>true</tt> if the current thread is finished, and
+	 * @param //finishing <tt>true</tt> if the current thread is finished, and
 	 * should be destroyed by the new thread.
 	 */
 	private void run() {
@@ -425,6 +425,10 @@ public class KThread {
 		private int which;
 	}
 
+	public boolean isBlocked () {
+		return this.status == statusBlocked;
+	}
+
 	/**
 	 * Tests whether this module is working.
 	 */
@@ -436,8 +440,8 @@ public class KThread {
 		joinTest1();
 		joinTest2();
 		joinTest4();
-		joinTest3();
-
+		//joinTest3();
+		//TODO: test join between two independent threads
 	}
 
 	// Place Join test code in the KThread class and invoke test methods
@@ -445,6 +449,10 @@ public class KThread {
 
 	// Simple test for the situation where the child finishes before
 	// the parent calls join on it.
+
+	public Runnable getRunnable(){
+		return this.target;
+	}
 
 	private static void joinTest1 () {
 		System.out.println(" ");
@@ -455,6 +463,13 @@ public class KThread {
 			}
 		});
 		child1.setName("child1").fork();
+		KThread child2 = new KThread( new Runnable () {
+			public void run() {
+				child1.join();
+				System.out.println("I (heart) Nachos, my id is "+currentThread.id);
+			}
+		});
+		child2.setName("child2").fork();
 
 		// We want the child to finish before we call join.  Although
 		// our solutions to the problems cannot busy wait, our test
@@ -465,7 +480,7 @@ public class KThread {
 		}
 
 
-		child1.join();
+		child2.join();
 		System.out.println("After joining, child1 should be finished.");
 		System.out.println("is it? " + (child1.status == statusFinished));
 		Lib.assertTrue((child1.status == statusFinished), " Expected child1 to be finished.");
@@ -589,4 +604,6 @@ public class KThread {
 
 	private boolean beJoined=false;
 	private KThread joinThread  = null;
+
+	public int exchangeRes = 0;
 }
