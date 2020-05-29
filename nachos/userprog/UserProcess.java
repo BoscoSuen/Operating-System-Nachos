@@ -6,6 +6,7 @@ import nachos.userprog.*;
 import nachos.vm.*;
 
 import java.io.EOFException;
+import java.io.FileDescriptor;
 
 /**
  * Encapsulates the state of a user process that is not contained in its user
@@ -26,8 +27,12 @@ public class UserProcess {
 	public UserProcess() {
 		int numPhysPages = Machine.processor().getNumPhysPages();
 		pageTable = new TranslationEntry[numPhysPages];
-		for (int i = 0; i < numPhysPages; i++)
+		for (int i = 0; i < numPhysPages; i++) {
 			pageTable[i] = new TranslationEntry(i, i, true, false, false, false);
+		}
+		fileTable = new OpenFile[maxFiles];
+		fileTable[0] = UserKernel.console.openForReading();	// stdin
+		fileTable[1] = UserKernel.console.openForWriting(); // stdout
 	}
 
 	/**
@@ -106,6 +111,7 @@ public class UserProcess {
 		byte[] bytes = new byte[maxLength + 1];
 
 		int bytesRead = readVirtualMemory(vaddr, bytes);
+		// read length in memory: maxLength
 
 		for (int length = 0; length < bytesRead; length++) {
 			if (bytes[length] == 0)
@@ -141,18 +147,21 @@ public class UserProcess {
 	 * array.
 	 * @return the number of bytes successfully transferred.
 	 */
+	// copy data from memory starting from paddr, copy it to the data
+	// offset: offset in data array
 	public int readVirtualMemory(int vaddr, byte[] data, int offset, int length) {
 		Lib.assertTrue(offset >= 0 && length >= 0
 				&& offset + length <= data.length);
 
 		byte[] memory = Machine.processor().getMemory();
 
-		// for now, just assume that virtual addresses equal physical addresses
+		// TODO: for now, just assume that virtual addresses equal physical addresses
 		if (vaddr < 0 || vaddr >= memory.length)
 			return 0;
 
 		int amount = Math.min(length, memory.length - vaddr);
 		System.arraycopy(memory, vaddr, data, offset, amount);
+		// arrayCopy(source array, starting position of source array, destination array, starting position in des array, len)
 
 		return amount;
 	}
@@ -347,6 +356,17 @@ public class UserProcess {
 		processor.writeRegister(Processor.regA1, argv);
 	}
 
+	private int getFreeFileDescriptor() {
+		for (int i  = 0; i < maxFiles; ++i) {
+			if (fileTable[i] == null) return i;
+		}
+		return -1;
+	}
+
+	/**
+	 * Following method handles the system calls.
+	 */
+
 	/**
 	 * Handle the halt() system call.
 	 */
@@ -373,6 +393,124 @@ public class UserProcess {
 
 		return 0;
 	}
+
+	/**
+	 * Handle the creat(char *name) system call.
+	 * Attempt to open the named disk file, creating it if it does not exist,
+	 * we need to get the file name string from virtual address
+	 * Notice that: maximum length for strings passed as arguments to system calls is 256 bytes (not including the terminating null).
+	 * @param vaName
+	 * @return a file descriptor referring to a stream.
+	 */
+	private int handleCreate(int vaName) {
+		String fileName = readVirtualMemoryString(vaName, maxParameterLength);
+		if (fileName == null || fileName.length() == 0) return -1;
+
+		int fileDescriptor = getFreeFileDescriptor();
+		if (fileDescriptor == -1) return -1;
+
+		fileTable[fileDescriptor] = ThreadedKernel.fileSystem.open(fileName, true);
+		return fileDescriptor;
+	}
+
+	/**
+	 * Same logic as create, but do not create file
+	 * If OpenFile == null, we need to return -1
+	 * @param vaName
+	 * @return fileDescriptor
+	 */
+	private int handleOpen(int vaName) {
+		String fileName = readVirtualMemoryString(vaName, maxParameterLength);
+		if (fileName == null) return -1;
+
+		int fileDescriptor = getFreeFileDescriptor();
+		if (fileDescriptor == -1) return -1;
+
+		OpenFile openFile = ThreadedKernel.fileSystem.open(fileName, false);
+		if (openFile == null) {
+			Lib.debug(dbgProcess, "\topen failed");
+			return -1;
+		}
+		fileTable[fileDescriptor] = openFile;
+		return fileDescriptor;
+	}
+
+	private boolean validFileWithFileDescriptor(int fileDescriptor) {
+		return fileDescriptor < 0 || fileDescriptor >= maxFiles || fileTable[fileDescriptor] == null;
+	}
+
+	/**
+	 * read from file to a local buffer of limited size
+	 * then write it into the user inputted buffer using writeVirtualMemory()
+	 * @param fileDescriptor
+	 * @param vaBuffer
+	 * @param count number of bytes requested
+	 * @return the number of bytes read
+	 */
+	private int handleRead(int fileDescriptor, int vaBuffer, int count) {
+		if (!validFileWithFileDescriptor(fileDescriptor)) return -1;
+
+		// read passes byte[] buffer, int offset and length
+		byte[] buffer = new byte[count];
+		int readResult = fileTable[fileDescriptor].read(buffer, 0, count);
+		if (readResult <= 0) return 0;
+		return writeVirtualMemory(vaBuffer, buffer);
+	}
+
+
+	/**
+	 * read data from the user inputted buffer to a local buffer of limited size
+	 * then use write() to write to file from the local buffer
+	 * @param fileDescriptor
+	 * @param vaBuffer
+	 * @param count
+	 * @return the number of bytes written
+	 */
+	private int handleWrite(int fileDescriptor, int vaBuffer, int count) {
+		if (!validFileWithFileDescriptor(fileDescriptor)) return -1;
+
+		byte[] buffer = new byte[count];
+		int readResult = readVirtualMemory(vaBuffer, buffer);
+		if (readResult <= 0) return 0;
+
+		int writeResult = fileTable[fileDescriptor].write(buffer, 0, count);
+//		It IS an error if this number is smaller than the number of bytes requested.
+//		For disk files, this indicates that the disk is full.
+		if (writeResult < count) {
+			System.out.println("The disk is full");
+			return -1;
+		}
+		return writeResult;
+	}
+
+
+	/**
+	 * find the OpenFile associated with fd
+	 * @param fileDescriptor
+	 * @return Returns 0 on success
+	 */
+	private int handleClose(int fileDescriptor) {
+		if (!validFileWithFileDescriptor(fileDescriptor)) return -1;
+
+		fileTable[fileDescriptor].close();;
+		fileTable[fileDescriptor] = null;
+		return 0;
+	}
+
+
+	/**
+	 * get the fileName and use remove()
+	 * @param vaName
+	 * @return Returns 0 on success
+	 */
+	private int handleUnlink(int vaName) {
+		String fileName = readVirtualMemoryString(vaName, maxParameterLength);
+		if (fileName == null) return 0;	// like already unlinked?
+		return ThreadedKernel.fileSystem.remove(fileName) ? 0 : -1;
+	}
+
+
+
 
 	private static final int syscallHalt = 0, syscallExit = 1, syscallExec = 2,
 			syscallJoin = 3, syscallCreate = 4, syscallOpen = 5,
@@ -446,6 +584,18 @@ public class UserProcess {
 			return handleHalt();
 		case syscallExit:
 			return handleExit(a0);
+		case syscallCreate:
+			return handleCreate(a0);	// vaddr
+		case syscallOpen:
+			return handleOpen(a0);		// vaddr
+		case syscallRead:
+			return handleRead(a0, a1, a2);	// int, vaddr, int
+		case syscallWrite:
+			return handleWrite(a0, a1, a2);	// int, vaddr, int
+		case syscallClose:
+			return handleClose(a0);		// int
+		case syscallUnlink:
+			return handleUnlink(a0);	// vaddr
 
 		default:
 			Lib.debug(dbgProcess, "Unknown syscall " + syscall);
@@ -496,6 +646,9 @@ public class UserProcess {
 
 	/** The thread that executes the user-level program. */
         protected UThread thread;
+
+	/** OpenFile table for the process. */
+	protected OpenFile[] fileTable;
     
 	private int initialPC, initialSP;
 
@@ -503,5 +656,10 @@ public class UserProcess {
 
 	private static final int pageSize = Processor.pageSize;
 
+	private static final int maxFiles = 16;
+
+	private static final int maxParameterLength = 256;
+
 	private static final char dbgProcess = 'a';
+
 }
