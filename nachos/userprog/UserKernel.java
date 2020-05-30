@@ -26,7 +26,7 @@ public class UserKernel extends ThreadedKernel {
 		console = new SynchConsole(Machine.console());
 
 		for (int i = 0; i < Machine.processor().getNumPhysPages(); ++i) {
-			pageList.add(i);
+			freePageList.add(i);
 		}
 
 		Machine.processor().setExceptionHandler(new Runnable() {
@@ -129,12 +129,14 @@ public class UserKernel extends ThreadedKernel {
 	/** Globally accessible reference to the synchronized console. */
 	public static SynchConsole console;
 
+	/** A linked-list to maintain free pages. */
+	public static LinkedList<Integer> freePageList = new LinkedList<>();
+
+	/**	The linked-list is shared, need a lock to deal with critical section. */
+	public static Lock lock = new Lock();
+
 	// dummy variables to make javac smarter
 	private static Coff dummy1 = null;
 
-	/** A linked-list to maintain free pages. */
-	private static LinkedList<Integer> pageList = new LinkedList<>();
 
-	/**	The linked-list is shared, need a lock to deal with critical section. */
-	private Lock lock = new Lock();
 }

@@ -156,8 +156,8 @@ public class UserProcess {
 		byte[] memory = Machine.processor().getMemory();
 
 		// TODO: for now, just assume that virtual addresses equal physical addresses
-//		if (vaddr < 0 || vaddr >= memory.length)
-//			return 0;
+		if (vaddr < 0 || vaddr >= memory.length)
+			return 0;
 		// TODO: we need to get ppn from vpn using pageTable
 		// TODO: deal with page boundary, add a pointer to track current vaddr read
 
@@ -215,10 +215,21 @@ public class UserProcess {
 		if (vaddr < 0 || vaddr >= memory.length)
 			return 0;
 
-		int amount = Math.min(length, memory.length - vaddr);
-		System.arraycopy(data, offset, memory, vaddr, amount);
+		int count = 0;
+		while (count < length) {
+			int vpn = Machine.processor().pageFromAddress(vaddr + count);
+			int pageOffset = Machine.processor().offsetFromAddress(vaddr + count);
+			pageTable[vpn].used = true;
+			// FIXME
+			if (pageTable[vpn].readOnly) return 0;
+			pageTable[vpn].dirty = true;
+			int ppn = pageTable[vpn].ppn;
+			int paddr = ppn * pageSize + pageOffset;
+			int amount = Math.min(pageSize - pageOffset, length - count);
+			System.arraycopy(data, offset, memory, paddr, amount);
+		}
 
-		return amount;
+		return count;
 	}
 
 	/**
@@ -316,11 +327,29 @@ public class UserProcess {
 	 * @return <tt>true</tt> if the sections were successfully loaded.
 	 */
 	protected boolean loadSections() {
+		UserKernel.lock.acquire();
+
 		if (numPages > Machine.processor().getNumPhysPages()) {
 			coff.close();
 			Lib.debug(dbgProcess, "\tinsufficient physical memory");
+			UserKernel.lock.release();
 			return false;
 		}
+
+		// create pageTable
+		// * critical section
+		pageTable = new TranslationEntry[numPages];
+		for (int i = 0; i < numPages; ++i) {
+			if (UserKernel.freePageList.size() > 0) {
+				int phyPage = UserKernel.freePageList.pollFirst();
+				pageTable[i] = new TranslationEntry(i, phyPage, true, false, false, false);
+			} else {
+				Lib.debug(dbgProcess, "\tinsufficient free physical pages");
+				return false;
+			}
+		}
+
+		UserKernel.lock.release();
 
 		// load sections
 		for (int s = 0; s < coff.getNumSections(); s++) {
@@ -331,9 +360,9 @@ public class UserProcess {
 
 			for (int i = 0; i < section.getLength(); i++) {
 				int vpn = section.getFirstVPN() + i;
-
+				pageTable[vpn].readOnly = section.isReadOnly();
 				// for now, just assume virtual addresses=physical addresses
-				section.loadPage(i, vpn);
+				section.loadPage(i, pageTable[vpn].ppn);
 			}
 		}
 
@@ -344,6 +373,13 @@ public class UserProcess {
 	 * Release any resources allocated by <tt>loadSections()</tt>.
 	 */
 	protected void unloadSections() {
+		// critical section
+		UserKernel.lock.release();
+		for (int i = 0; i < numPages; ++i) {
+			UserKernel.freePageList.offer(pageTable[i].ppn);
+			pageTable[i] = null;
+		}
+		UserKernel.lock.release();
 	}
 
 	/**
