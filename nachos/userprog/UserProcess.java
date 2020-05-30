@@ -156,14 +156,27 @@ public class UserProcess {
 		byte[] memory = Machine.processor().getMemory();
 
 		// TODO: for now, just assume that virtual addresses equal physical addresses
-		if (vaddr < 0 || vaddr >= memory.length)
-			return 0;
+//		if (vaddr < 0 || vaddr >= memory.length)
+//			return 0;
+		// TODO: we need to get ppn from vpn using pageTable
+		// TODO: deal with page boundary, add a pointer to track current vaddr read
 
-		int amount = Math.min(length, memory.length - vaddr);
-		System.arraycopy(memory, vaddr, data, offset, amount);
-		// arrayCopy(source array, starting position of source array, destination array, starting position in des array, len)
-
-		return amount;
+		int count = 0;
+		while (count < length) {
+			int vpn = Machine.processor().pageFromAddress(vaddr + count);
+			int pageOffset = Machine.processor().offsetFromAddress(vaddr + count);
+			int ppn = pageTable[vpn].ppn;
+			// FIXME
+			if (ppn < 0 || ppn > Machine.processor().getNumPhysPages()) break;
+			pageTable[vpn].used = true;
+			int paddr = ppn * pageSize + pageOffset;
+			int curPageLeft = pageSize - pageOffset;
+			int amount = Math.min(curPageLeft, length - count);
+			System.arraycopy(memory, paddr, data, offset + count, amount);
+			// arrayCopy(source array, starting position of source array, destination array, starting position in des array, len)
+			count += amount;
+		}
+		return count;
 	}
 
 	/**
@@ -508,8 +521,6 @@ public class UserProcess {
 		if (fileName == null) return 0;	// like already unlinked?
 		return ThreadedKernel.fileSystem.remove(fileName) ? 0 : -1;
 	}
-
-
 
 
 	private static final int syscallHalt = 0, syscallExit = 1, syscallExec = 2,
