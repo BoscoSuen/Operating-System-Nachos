@@ -5,8 +5,10 @@ import nachos.threads.*;
 import nachos.userprog.*;
 import nachos.vm.*;
 
+import javax.jws.soap.SOAPBinding;
 import java.io.EOFException;
 import java.io.FileDescriptor;
+import java.util.*;
 
 /**
  * Encapsulates the state of a user process that is not contained in its user
@@ -33,6 +35,15 @@ public class UserProcess {
 		fileTable = new OpenFile[maxFiles];
 		fileTable[0] = UserKernel.console.openForReading();	// stdin
 		fileTable[1] = UserKernel.console.openForWriting(); // stdout
+
+		// FIXME: critical section
+		UserKernel.PIDLock.acquire();
+
+		PID = UserKernel.getNextPID();
+
+		UserKernel.PIDLock.release();
+
+		lock = new Lock();
 	}
 
 	/**
@@ -327,12 +338,12 @@ public class UserProcess {
 	 * @return <tt>true</tt> if the sections were successfully loaded.
 	 */
 	protected boolean loadSections() {
-		UserKernel.lock.acquire();
+		UserKernel.sectionLock.acquire();
 
 		if (numPages > Machine.processor().getNumPhysPages()) {
 			coff.close();
 			Lib.debug(dbgProcess, "\tinsufficient physical memory");
-			UserKernel.lock.release();
+			UserKernel.sectionLock.release();
 			return false;
 		}
 
@@ -349,7 +360,7 @@ public class UserProcess {
 			}
 		}
 
-		UserKernel.lock.release();
+		UserKernel.sectionLock.release();
 
 		// load sections
 		for (int s = 0; s < coff.getNumSections(); s++) {
@@ -374,12 +385,12 @@ public class UserProcess {
 	 */
 	protected void unloadSections() {
 		// critical section
-		UserKernel.lock.release();
+		UserKernel.sectionLock.release();
 		for (int i = 0; i < numPages; ++i) {
 			UserKernel.freePageList.offer(pageTable[i].ppn);
 			pageTable[i] = null;
 		}
-		UserKernel.lock.release();
+		UserKernel.sectionLock.release();
 	}
 
 	/**
@@ -429,6 +440,16 @@ public class UserProcess {
 
 	/**
 	 * Handle the exit() system call.
+	 * close all files in the file table
+	 * delete memory calling UnloadSections()
+	 * close coff by coff.close()
+	 * save status for parent
+	 * wake up parent
+	 * last process: kernel.kernel.terminate()
+	 * close KThread
+	 * handle abnormal exit
+	 * @param status
+	 * @return
 	 */
 	private int handleExit(int status) {
 	        // Do not remove this call to the autoGrader...
@@ -437,8 +458,29 @@ public class UserProcess {
 		// can grade your implementation.
 
 		Lib.debug(dbgProcess, "UserProcess.handleExit (" + status + ")");
-		// for now, unconditionally terminate with just one process
-		Kernel.kernel.terminate();
+		// close all files
+		for (int i = 2; i < fileTable.length; ++i) {
+			if (fileTable[i] != null) {
+				handleClose(i);
+			}
+		}
+
+		unloadSections();
+//		Any children of the process no longer have a parent process.
+//		 parent is shared, critical section
+		for (UserProcess child : childProcessLookUpMap.values()) {
+			child.parent = null;
+		}
+
+		this.exitStatus = status;
+
+		if (PID == 0) {
+			Kernel.kernel.terminate();
+		} else {
+			UThread.currentThread().finish();
+		}
+
+		// TODO: handle abnormal exit
 
 		return 0;
 	}
@@ -558,6 +600,68 @@ public class UserProcess {
 		return ThreadedKernel.fileSystem.remove(fileName) ? 0 : -1;
 	}
 
+	/**
+	 * read coffName from virtual address
+	 * read argvs from virtual address
+	 * @param vaCoff
+	 * @param argc
+	 * @param argv
+	 * @return the child process's process ID or -1
+	 */
+	private int handleExec(int vaCoff, int argc, int argv) {
+		if (argc < 1) return -1;
+		String coffName = readVirtualMemoryString(vaCoff, maxParameterLength);
+		// this string must include the ".coff" extension
+		if (coffName == null || coffName.length() == 0 || !coffName.contains(".coff")) return -1;
+
+		// get the arguments address
+		// each pointer has 4 type, use readvirtualmemory() and track the current vaddr
+		String[] argStrs = new String[argc];
+		byte[] buffer = new byte[4];
+		for (int i = 0; i < argc; ++i) {
+			int readCount = readVirtualMemory(argv, buffer);
+			argv += 4;
+			if (readCount < 4) return -1;
+
+			int vaddr = Lib.bytesToInt(buffer, 0);
+			argStrs[i] = readVirtualMemoryString(vaddr,maxParameterLength);
+		}
+
+		// create child process
+		UserProcess childProcess = new UserProcess();
+		childProcess.parent = this;
+		childProcessLookUpMap.put(childProcess.PID, childProcess);
+		if (childProcess.execute(coffName, argStrs)) {
+			return childProcess.PID;
+		}
+
+		return -1;
+	}
+
+	/**
+	 * use the Kthread.join
+	 * get child status and write to *status
+	 * @param pid childPID, only a process's parent can join to it.
+	 * @param vaStatus
+	 * @return the status of join()
+	 */
+	public int handleJoin(int pid, int vaStatus) {
+		if (!childProcessLookUpMap.containsKey(pid)) {
+			Lib.debug(dbgProcess, "Doesn't have the child PId with PID = " + pid);
+			return -1;
+		}
+
+		UserProcess child = childProcessLookUpMap.get(pid);
+		child.thread.join();
+		childProcessLookUpMap.remove(pid);
+
+		// store the status to the *status
+		byte[] buffer = new byte[4];
+		buffer = Lib.bytesFromInt(child.exitStatus);
+		int writeCount = writeVirtualMemory(vaStatus, buffer);
+		return writeCount == 4 ? 1 : 0;
+	}
+
 
 	private static final int syscallHalt = 0, syscallExit = 1, syscallExec = 2,
 			syscallJoin = 3, syscallCreate = 4, syscallOpen = 5,
@@ -643,6 +747,11 @@ public class UserProcess {
 			return handleClose(a0);		// int
 		case syscallUnlink:
 			return handleUnlink(a0);	// vaddr
+		case syscallExec:
+			return handleExec(a0, a1, a2);
+		case syscallJoin:
+			return handleJoin(a0, a1);
+
 
 		default:
 			Lib.debug(dbgProcess, "Unknown syscall " + syscall);
@@ -692,14 +801,29 @@ public class UserProcess {
 	protected final int stackPages = 8;
 
 	/** The thread that executes the user-level program. */
-        protected UThread thread;
+	protected UThread thread;
+
+	/** Parent process of child process .*/
+	protected UserProcess parent = null;
+
+	/** Current Process's PID .*/
+	protected int PID;
 
 	/** OpenFile table for the process. */
 	protected OpenFile[] fileTable;
-    
+
+	/** The relationship between PID and process .*/
+	private static Map<Integer, UserProcess> childProcessLookUpMap = new HashMap<>();
+
+	private static Lock lock;
+
+
 	private int initialPC, initialSP;
 
 	private int argc, argv;
+
+	/** status of the process exited or not. */
+	private int exitStatus;
 
 	private static final int pageSize = Processor.pageSize;
 

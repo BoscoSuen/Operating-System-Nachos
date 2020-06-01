@@ -34,9 +34,19 @@ public class UserKernel extends ThreadedKernel {
 				exceptionHandler();
 			}
 		});
-
-
 	}
+
+	/**
+	 * get the new process PID using the process counter
+	 * @return new process's PID
+	 */
+	public static int getNextPID() {
+		boolean status = Machine.interrupt().disable();
+		processCounter++;
+		Machine.interrupt().restore(status);
+		return processCounter;
+	}
+
 
 	/**
 	 * Test the console device.
@@ -130,13 +140,18 @@ public class UserKernel extends ThreadedKernel {
 	public static SynchConsole console;
 
 	/** A linked-list to maintain free pages. */
-	public static LinkedList<Integer> freePageList = new LinkedList<>();
+	public static Deque<Integer> freePageList = new LinkedList<>();
 
 	/**	The linked-list is shared, need a lock to deal with critical section. */
-	public static Lock lock = new Lock();
+	public static Lock sectionLock = new Lock();
+
+	/**	The lock to deal with pid .*/
+	public static Lock PIDLock = new Lock();
 
 	// dummy variables to make javac smarter
 	private static Coff dummy1 = null;
 
+	/**	Use the counter to get a PID for process, which should equal to the number of process .*/
+	private static int processCounter = 0;
 
 }
