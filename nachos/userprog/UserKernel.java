@@ -3,9 +3,7 @@ package nachos.userprog;
 import nachos.machine.*;
 import nachos.threads.*;
 import nachos.userprog.*;
-
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 /**
  * A kernel that can support multiple user processes.
@@ -27,49 +25,51 @@ public class UserKernel extends ThreadedKernel {
 
 		console = new SynchConsole(Machine.console());
 
-		freePhysicalPages = new LinkedList<>();
-
-		lockOfFreePhysPageList = new Lock();
+		for (int i = 0; i < Machine.processor().getNumPhysPages(); ++i) {
+			freePageList.add(i);
+		}
 
 		Machine.processor().setExceptionHandler(new Runnable() {
 			public void run() {
 				exceptionHandler();
 			}
 		});
-
-		// initialize free physical page list
-		initialFreePhysicalPageList();
 	}
 
-	private void initialFreePhysicalPageList() {
-		int numPhysPages = Machine.processor().getNumPhysPages();
-		for (int i = 0; i < numPhysPages; i++) {
-			freePhysicalPages.add(i);
-		}
+	/**
+	 * get the new process PID using the process counter
+	 * @return new process's PID
+	 */
+	public static int getNextPID() {
+		boolean status = Machine.interrupt().disable();
+		processCounter++;
+		Machine.interrupt().restore(status);
+		return processCounter;
 	}
+
 
 	/**
 	 * Test the console device.
 	 */
 	public void selfTest() {
-//		super.selfTest();
-//
-//		System.out.println("Testing the console device. Typed characters");
-//		System.out.println("will be echoed until q is typed.");
-//
-//		char c;
-//
-//		do {
-//			c = (char) console.readByte(true);
-//			console.writeByte(c);
-//		} while (c != 'q');
-//
-//		System.out.println("");
+		super.selfTest();
+
+		System.out.println("Testing the console device. Typed characters");
+		System.out.println("will be echoed until q is typed.");
+
+		char c;
+
+		do {
+			c = (char) console.readByte(true);
+			console.writeByte(c);
+		} while (c != 'q');
+
+		System.out.println("");
 	}
 
 	/**
 	 * Returns the current process.
-	 *
+	 * 
 	 * @return the current process, or <tt>null</tt> if no process is current.
 	 */
 	public static UserProcess currentProcess() {
@@ -82,7 +82,7 @@ public class UserKernel extends ThreadedKernel {
 	/**
 	 * The exception handler. This handler is called by the processor whenever a
 	 * user instruction causes a processor exception.
-	 *
+	 * 
 	 * <p>
 	 * When the exception handler is invoked, interrupts are enabled, and the
 	 * processor's cause register contains an integer identifying the cause of
@@ -104,7 +104,7 @@ public class UserKernel extends ThreadedKernel {
 	 * Start running user programs, by creating a process and running a shell
 	 * program in it. The name of the shell program it must run is returned by
 	 * <tt>Machine.getShellProgramName()</tt>.
-	 *
+	 * 
 	 * @see nachos.machine.Machine#getShellProgramName
 	 */
 	public void run() {
@@ -114,44 +114,24 @@ public class UserKernel extends ThreadedKernel {
 
 		String shellProgram = Machine.getShellProgramName();
 		if (!process.execute(shellProgram, new String[] {})) {
-			System.out.println ("Could not find executable '" +
+		    System.out.println ("Could not find executable '" +
 					shellProgram + "', trying '" +
 					shellProgram + ".coff' instead.");
-			shellProgram += ".coff";
-			if (!process.execute(shellProgram, new String[] {})) {
-				System.out.println ("Also could not find '" +
-						shellProgram + "', aborting.");
-				Lib.assertTrue(false);
-			}
+		    shellProgram += ".coff";
+		    if (!process.execute(shellProgram, new String[] {})) {
+			System.out.println ("Also could not find '" +
+					    shellProgram + "', aborting.");
+			Lib.assertTrue(false);
+		    }
 
 		}
-
 		KThread.currentThread().finish();
-	}
-
-	public static int getAFreePhysicalPage() {
-		lockOfFreePhysPageList.acquire();
-
-		int result = -1;
-		if (freePhysicalPages.size() != 0) {
-			result = freePhysicalPages.remove(0);
-		}
-
-		lockOfFreePhysPageList.release();
-		return result;
-	}
-
-	public static void releasePhysicalPage(int ppn) {
-		lockOfFreePhysPageList.acquire();
-
-		freePhysicalPages.add(ppn);
-
-		lockOfFreePhysPageList.release();
 	}
 
 	/**
 	 * Terminate this kernel. Never returns.
 	 */
+
 	public void terminate() {
 		super.terminate();
 	}
@@ -159,17 +139,19 @@ public class UserKernel extends ThreadedKernel {
 	/** Globally accessible reference to the synchronized console. */
 	public static SynchConsole console;
 
-	// dummy variables to make javac smarter
-	private static Coff dummy1 = null;
+	/** A linked-list to maintain free pages. */
+	public static Deque<Integer> freePageList = new LinkedList<>();
 
-	// free physical pages
-	private static List<Integer> freePhysicalPages;
-
-	private static Lock lockOfFreePhysPageList;
+	/**	The linked-list is shared, need a lock to deal with critical section. */
+	public static Lock sectionLock = new Lock();
 
 	/**	The lock to deal with pid .*/
 	public static Lock PIDLock = new Lock();
 
+	// dummy variables to make javac smarter
+	private static Coff dummy1 = null;
+
 	/**	Use the counter to get a PID for process, which should equal to the number of process .*/
-	public static int processCounter = 0;
+	private static int processCounter = 0;
+
 }
