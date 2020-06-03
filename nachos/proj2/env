@@ -1,0 +1,2 @@
+export ARCHDIR=/Users/suen/Desktop/CSE120/Operating-System-Nachos/nachos/proj2/mips-x86.linux-xgcc
+export PATH=/Users/suen/Desktop/CSE120/Operating-System-Nachos/nachos/proj2/mips-x86.linux-xgcc:$PATH
