@@ -167,8 +167,8 @@ public class UserKernel extends ThreadedKernel {
 
 	private static Lock lockOfFreePhysPageList;
 
-	/**	The lock to deal with pid .*/
-	public static Lock PIDLock = new Lock();
+//	/**	The lock to deal with pid .*/
+//	public static Lock PIDLock = new Lock();
 
 	/**	Use the counter to get a PID for process, which should equal to the number of process .*/
 	public static int processCounter = 0;

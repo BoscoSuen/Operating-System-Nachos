@@ -32,11 +32,11 @@ public class UserProcess {
 		initialFDTable();
 
 		// critical section
-		UserKernel.PIDLock.acquire();
+		PIDLock.acquire();
 
 		PID = UserKernel.processCounter++;
 
-		UserKernel.PIDLock.release();
+		PIDLock.release();
 	}
 
 	/**
@@ -488,7 +488,7 @@ public class UserProcess {
 	}
 
 	private int handleCreate(int vaName) {
-		String name = readVirtualMemoryString(vaName, 256); // TODO: 256 or 255
+		String name = readVirtualMemoryString(vaName, maxParameterLength); // TODO: 256 or 255
 		if (name == null) { return -1; }
 		OpenFile openFile = UserKernel.fileSystem.open(name, true);
 		if (openFile != null) {
@@ -507,7 +507,7 @@ public class UserProcess {
 	}
 
 	private int handleOpen(int vaName) {
-		String name = readVirtualMemoryString(vaName, 256);
+		String name = readVirtualMemoryString(vaName, maxParameterLength);
 		OpenFile openFile = UserKernel.fileSystem.open(name, false);
 		if (openFile != null) {
 //			boolean intStatus = Machine.interrupt().disable();
@@ -560,7 +560,7 @@ public class UserProcess {
 	}
 
 	private int handleUnlink(int vaName) {
-		String name = readVirtualMemoryString(vaName, 256); // TODO: 256 or 255
+		String name = readVirtualMemoryString(vaName, maxParameterLength); // TODO: 256 or 255
 		boolean result = UserKernel.fileSystem.remove(name);
 		return result ? 0:-1;
 	}
@@ -574,18 +574,24 @@ public class UserProcess {
 	 * @return the child process's process ID or -1
 	 */
 	private int handleExec(int vaCoff, int argc, int argv) {
-		if (argc < 1) return -1;
+		if (argc < 0) {
+			Lib.debug(dbgProcess, "handleExec: argc = " + argc);
+			Lib.debug(dbgProcess, "handleExec: argv = " + argv);
+			return -1;
+		}
 		String coffName = readVirtualMemoryString(vaCoff, maxParameterLength);
 		// this string must include the ".coff" extension
-		if (coffName == null || coffName.length() == 0 || !coffName.contains(".coff")) return -1;
+		if (coffName == null || coffName.length() == 0 || !coffName.contains(".coff")) {
+			Lib.debug(dbgProcess, "handleExec: coffName wrong");
+			return -1;
+		}
 
 		// get the arguments address
 		// each pointer has 4 type, use readvirtualmemory() and track the current vaddr
 		String[] argStrs = new String[argc];
 		byte[] buffer = new byte[4];
 		for (int i = 0; i < argc; ++i) {
-			int readCount = readVirtualMemory(argv, buffer);
-			argv += 4;
+			int readCount = readVirtualMemory(argv + i * 4, buffer);
 			if (readCount < 4) return -1;
 
 			int vaddr = Lib.bytesToInt(buffer, 0);
@@ -599,6 +605,8 @@ public class UserProcess {
 		if (childProcess.execute(coffName, argStrs)) {
 			return childProcess.PID;
 		}
+
+		Lib.debug(dbgProcess, "handleExec: cannot execute child process.");
 
 		return -1;
 	}
@@ -776,6 +784,9 @@ public class UserProcess {
 
 	/** The relationship between PID and process .*/
 	private static Map<Integer, UserProcess> childProcessLookUpMap = new HashMap<>();
+
+	/**	The lock to deal with pid .*/
+	public static Lock PIDLock = new Lock();
 
 	private int initialPC, initialSP;
 
