@@ -48,6 +48,26 @@ public class UserKernel extends ThreadedKernel {
 		}
 	}
 
+	public static void increaseLiveProcess() {
+//		liveProcessMutex.P();
+		boolean status = Machine.interrupt().disable();
+		liveProcessCount++;
+		Machine.interrupt().restore(status);
+//		liveProcessMutex.V();
+	}
+
+	public static void decreaseLiveProcess() {
+//		liveProcessMutex.P();
+		boolean status = Machine.interrupt().disable();
+		liveProcessCount--;
+		Machine.interrupt().restore(status);
+//		liveProcessMutex.V();
+	}
+
+	public static int getLiveProcessCount() {
+		return liveProcessCount;
+	}
+
 	/**
 	 * Test the console device.
 	 */
@@ -121,7 +141,7 @@ public class UserKernel extends ThreadedKernel {
 			if (!process.execute(shellProgram, new String[] {})) {
 				System.out.println ("Also could not find '" +
 						shellProgram + "', aborting.");
-				Lib.assertTrue(false);
+//				Lib.assertTrue(false);
 			}
 
 		}
@@ -167,9 +187,13 @@ public class UserKernel extends ThreadedKernel {
 
 	private static Lock lockOfFreePhysPageList;
 
+//	private static Semaphore liveProcessMutex = new Semaphore(1);
+
 //	/**	The lock to deal with pid .*/
 //	public static Lock PIDLock = new Lock();
 
 	/**	Use the counter to get a PID for process, which should equal to the number of process .*/
 	public static int processCounter = 0;
+
+	private static int liveProcessCount = 0;
 }

@@ -32,6 +32,7 @@ unsigned int strlen(const char *str);
 char *strcpy(char *dst, const char *src);
 int strcmp(const char *a, const char *b);
 int strncmp(const char *a, const char *b, int n);
+char *strcat(char *s1, const char *s2);
 
 int atoi(const char *s);
 

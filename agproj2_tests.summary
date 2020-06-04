@@ -1,0 +1,22 @@
+------[                  Wed Jun  3 23:51:34 2020                  ]------
+------[  Grading Commit: 8e372014b95e1710475b04a83c3bb57029a9783b  ]------
+PASS : Test write1.c
+PASS : Test write4.c
+PASS : Test write10.c
+PASS : Test exec1.c
+PASS : Test join1.c
+PASS : Test execarg1.c
+PASS : Test except1.c
+PASS : Test exit1.c
+
+------[                  Thu Jun  4 00:14:05 2020                  ]------
+------[  Grading Commit: 10985fe4251a2470f104fa904aea8c5b9dc3d74e  ]------
+PASS : Test write1.c
+PASS : Test write4.c
+PASS : Test write10.c
+PASS : Test exec1.c
+PASS : Test join1.c
+PASS : Test execarg1.c
+PASS : Test except1.c
+PASS : Test exit1.c
+

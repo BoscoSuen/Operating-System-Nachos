@@ -1,3 +1,9 @@
+# Project1
+| Group Member  | PID           | Contribution |
+| :------------:|:-------------:| :----------: |
+| Di Wang       | A53315499     | Implementing task 2 & 5, testing and code review              |
+| Zhiqiang Sun  | A53304794     | Implementing task 1 & 4, adding test for duplicate ready() call, testing all the parts and code review            |
+| Guoqiang Liu  | A53311352     | Implementing task 3 & 4, testing and code review   |
 ## Task1
 [Alarm class](https://github.com/UCSD-CSE120-SP20-A/nachos_sp20_CathyWang53_Yukinichi_isguoqiang/blob/50b3724f101f3039d62f7514bd3ebdf3de5b4b00/nachos/threads/Alarm.java) implements a PriorityQueue to list all waiting threads with corresponding *KThread and wake uptime*, and order in their wake up time. The class includes 
 - [WaitUntil()](https://github.com/UCSD-CSE120-SP20-A/nachos_sp20_CathyWang53_Yukinichi_isguoqiang/blob/750b887b60eb206e76b2b8a5237862aa8c4e6320/nachos/threads/Alarm.java#L61) to block the current thread, we disable the interrupt, set wake up time and add to the waiting queue, and put the current thread to sleep and restore the interrupt;

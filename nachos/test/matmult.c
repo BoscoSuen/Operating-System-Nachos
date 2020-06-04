@@ -5,7 +5,7 @@
  */
 
 #include "syscall.h"
-
+#include "stdio.h"
 #define Dim 	20	/* sum total of the arrays doesn't fit in 
 			 * physical memory 
 			 */

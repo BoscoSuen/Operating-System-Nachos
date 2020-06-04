@@ -1,0 +1,506 @@
+------[                  Wed Jun  3 23:51:34 2020                  ]------
+------[  Grading Commit: 8e372014b95e1710475b04a83c3bb57029a9783b  ]------
+--[ Test write1.c ]--
+nachos 5.0j initializing... config interrupt timer processor console user-check grader
+
+roses are red
+violets are blue
+I love Nachos
+and so do you
+
+
+success
+
+--[ Test write4.c ]--
+nachos 5.0j initializing... config interrupt timer processor console user-check grader
+Test: Sending string "<3 nachos!
+.
+" to stdin.
+
+-> <3 nachos!
+-> 
+success
+
+--[ Test write10.c ]--
+nachos 5.0j initializing... config interrupt timer processor console user-check grader
+creating write.out...
+...passed (fd = 2)
+writing 59 bytes to file, 59 bytes at a time...
+...passed (wrote 59 bytes)
+closing 2...
+opening write.out...
+...passed (fd = 2)
+reading write.out into buffer...
+...success
+validating write.out...
+...passed
+closing 2...
+creating write.out...
+...passed (fd = 2)
+writing 59 bytes to file, 8 bytes at a time...
+...passed (wrote 8 bytes)
+...passed (wrote 8 bytes)
+...passed (wrote 8 bytes)
+...passed (wrote 8 bytes)
+...passed (wrote 8 bytes)
+...passed (wrote 8 bytes)
+...passed (wrote 8 bytes)
+...passed (wrote 3 bytes)
+closing 2...
+opening write.out...
+...passed (fd = 2)
+reading write.out into buffer...
+...success
+validating write.out...
+...passed
+closing 2...
+creating write.out...
+...passed (fd = 2)
+writing 59 bytes to file, 1 bytes at a time...
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+closing 2...
+opening write.out...
+...passed (fd = 2)
+reading write.out into buffer...
+...success
+validating write.out...
+...passed
+closing 2...
+creating binary.out...
+...passed (fd = 2)
+writing 4096 bytes to file, 4096 bytes at a time...
+...passed (wrote 4096 bytes)
+closing 2...
+opening binary.out...
+...passed (fd = 2)
+reading binary.out into buffer...
+...success
+validating binary.out...
+...passed
+closing 2...
+creating binary.out...
+...passed (fd = 2)
+writing 4096 bytes to file, 128 bytes at a time...
+...passed (wrote 128 bytes)
+...passed (wrote 128 bytes)
+...passed (wrote 128 bytes)
+...passed (wrote 128 bytes)
+...passed (wrote 128 bytes)
+...passed (wrote 128 bytes)
+...passed (wrote 128 bytes)
+...passed (wrote 128 bytes)
+...passed (wrote 128 bytes)
+...passed (wrote 128 bytes)
+...passed (wrote 128 bytes)
+...passed (wrote 128 bytes)
+...passed (wrote 128 bytes)
+...passed (wrote 128 bytes)
+...passed (wrote 128 bytes)
+...passed (wrote 128 bytes)
+...passed (wrote 128 bytes)
+...passed (wrote 128 bytes)
+...passed (wrote 128 bytes)
+...passed (wrote 128 bytes)
+...passed (wrote 128 bytes)
+...passed (wrote 128 bytes)
+...passed (wrote 128 bytes)
+...passed (wrote 128 bytes)
+...passed (wrote 128 bytes)
+...passed (wrote 128 bytes)
+...passed (wrote 128 bytes)
+...passed (wrote 128 bytes)
+...passed (wrote 128 bytes)
+...passed (wrote 128 bytes)
+...passed (wrote 128 bytes)
+...passed (wrote 128 bytes)
+closing 2...
+opening binary.out...
+...passed (fd = 2)
+reading binary.out into buffer...
+...success
+validating binary.out...
+...passed
+closing 2...
+writing to an invalid fd (-10)...
+...passed (r = -1)
+writing to an invalid fd (256)...
+...passed (r = -1)
+writing to an unopened fd (8)...
+...passed (r = -1)
+creating bad.out...
+...passed (fd = 2)
+writing count = 0 bytes...
+...passed
+writing with an invalid buffer (should not crash, only return an error)...
+...passed (r = -1)
+writing with an invalid count (should not crash, only return an error)...
+...passed (r = -1)
+writing with a buffer that extends beyond the end of the
+address space.  write should return an error.
+...passed (r = -1)
+
+success
+
+--[ Test exec1.c ]--
+nachos 5.0j initializing... config interrupt timer processor console user-check grader
+ParentChildGrader: Parent exited with status 1
+ParentChildGrader: Child exited with status 123
+
+success
+
+--[ Test join1.c ]--
+nachos 5.0j initializing... config interrupt timer processor console user-check grader
+execing exit1.coff...
+...passed
+joining 1...
+...passed (status from child = 123)
+
+success
+
+--[ Test execarg1.c ]--
+nachos 5.0j initializing... config interrupt timer processor console user-check grader
+childargc: 5
+childargv: 13280 (0x33e0)
+
+&childargv[0]: 13280 (0x33e0)
+&childargv[1]: 13284 (0x33e4)
+&childargv[2]: 13288 (0x33e8)
+&childargv[3]: 13292 (0x33ec)
+&childargv[4]: 13296 (0x33f0)
+childargv[0]: 3072 (0xc00)
+childargv[1]: 3084 (0xc0c)
+childargv[2]: 3100 (0xc1c)
+childargv[3]: 3120 (0xc30)
+childargv[4]: 3136 (0xc40)
+exec succeded, child pid 1
+
+success
+
+--[ Test except1.c ]--
+nachos 5.0j initializing... config interrupt timer processor console user-check grader
+
+roses are red
+violets are blue
+I love Nachos
+and so do you
+
+
+success
+
+--[ Test exit1.c ]--
+nachos 5.0j initializing... config interrupt timer processor console user-check grader
+
+success
+
+
+------[                  Thu Jun  4 00:14:05 2020                  ]------
+------[  Grading Commit: 10985fe4251a2470f104fa904aea8c5b9dc3d74e  ]------
+--[ Test write1.c ]--
+nachos 5.0j initializing... config interrupt timer processor console user-check grader
+
+roses are red
+violets are blue
+I love Nachos
+and so do you
+
+
+success
+
+--[ Test write4.c ]--
+nachos 5.0j initializing... config interrupt timer processor console user-check grader
+Test: Sending string "<3 nachos!
+.
+" to stdin.
+
+-> <3 nachos!
+-> 
+success
+
+--[ Test write10.c ]--
+nachos 5.0j initializing... config interrupt timer processor console user-check grader
+creating write.out...
+...passed (fd = 2)
+writing 59 bytes to file, 59 bytes at a time...
+...passed (wrote 59 bytes)
+closing 2...
+opening write.out...
+...passed (fd = 2)
+reading write.out into buffer...
+...success
+validating write.out...
+...passed
+closing 2...
+creating write.out...
+...passed (fd = 2)
+writing 59 bytes to file, 8 bytes at a time...
+...passed (wrote 8 bytes)
+...passed (wrote 8 bytes)
+...passed (wrote 8 bytes)
+...passed (wrote 8 bytes)
+...passed (wrote 8 bytes)
+...passed (wrote 8 bytes)
+...passed (wrote 8 bytes)
+...passed (wrote 3 bytes)
+closing 2...
+opening write.out...
+...passed (fd = 2)
+reading write.out into buffer...
+...success
+validating write.out...
+...passed
+closing 2...
+creating write.out...
+...passed (fd = 2)
+writing 59 bytes to file, 1 bytes at a time...
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+...passed (wrote 1 bytes)
+closing 2...
+opening write.out...
+...passed (fd = 2)
+reading write.out into buffer...
+...success
+validating write.out...
+...passed
+closing 2...
+creating binary.out...
+...passed (fd = 2)
+writing 4096 bytes to file, 4096 bytes at a time...
+...passed (wrote 4096 bytes)
+closing 2...
+opening binary.out...
+...passed (fd = 2)
+reading binary.out into buffer...
+...success
+validating binary.out...
+...passed
+closing 2...
+creating binary.out...
+...passed (fd = 2)
+writing 4096 bytes to file, 128 bytes at a time...
+...passed (wrote 128 bytes)
+...passed (wrote 128 bytes)
+...passed (wrote 128 bytes)
+...passed (wrote 128 bytes)
+...passed (wrote 128 bytes)
+...passed (wrote 128 bytes)
+...passed (wrote 128 bytes)
+...passed (wrote 128 bytes)
+...passed (wrote 128 bytes)
+...passed (wrote 128 bytes)
+...passed (wrote 128 bytes)
+...passed (wrote 128 bytes)
+...passed (wrote 128 bytes)
+...passed (wrote 128 bytes)
+...passed (wrote 128 bytes)
+...passed (wrote 128 bytes)
+...passed (wrote 128 bytes)
+...passed (wrote 128 bytes)
+...passed (wrote 128 bytes)
+...passed (wrote 128 bytes)
+...passed (wrote 128 bytes)
+...passed (wrote 128 bytes)
+...passed (wrote 128 bytes)
+...passed (wrote 128 bytes)
+...passed (wrote 128 bytes)
+...passed (wrote 128 bytes)
+...passed (wrote 128 bytes)
+...passed (wrote 128 bytes)
+...passed (wrote 128 bytes)
+...passed (wrote 128 bytes)
+...passed (wrote 128 bytes)
+...passed (wrote 128 bytes)
+closing 2...
+opening binary.out...
+...passed (fd = 2)
+reading binary.out into buffer...
+...success
+validating binary.out...
+...passed
+closing 2...
+writing to an invalid fd (-10)...
+...passed (r = -1)
+writing to an invalid fd (256)...
+...passed (r = -1)
+writing to an unopened fd (8)...
+...passed (r = -1)
+creating bad.out...
+...passed (fd = 2)
+writing count = 0 bytes...
+...passed
+writing with an invalid buffer (should not crash, only return an error)...
+...passed (r = -1)
+writing with an invalid count (should not crash, only return an error)...
+...passed (r = -1)
+writing with a buffer that extends beyond the end of the
+address space.  write should return an error.
+...passed (r = -1)
+
+success
+
+--[ Test exec1.c ]--
+nachos 5.0j initializing... config interrupt timer processor console user-check grader
+ParentChildGrader: Parent exited with status 1
+ParentChildGrader: Child exited with status 123
+
+success
+
+--[ Test join1.c ]--
+nachos 5.0j initializing... config interrupt timer processor console user-check grader
+execing exit1.coff...
+...passed
+joining 1...
+...passed (status from child = 123)
+
+success
+
+--[ Test execarg1.c ]--
+nachos 5.0j initializing... config interrupt timer processor console user-check grader
+childargc: 5
+childargv: 13280 (0x33e0)
+
+&childargv[0]: 13280 (0x33e0)
+&childargv[1]: 13284 (0x33e4)
+&childargv[2]: 13288 (0x33e8)
+&childargv[3]: 13292 (0x33ec)
+&childargv[4]: 13296 (0x33f0)
+childargv[0]: 3072 (0xc00)
+childargv[1]: 3084 (0xc0c)
+childargv[2]: 3100 (0xc1c)
+childargv[3]: 3120 (0xc30)
+childargv[4]: 3136 (0xc40)
+exec succeded, child pid 1
+
+success
+
+--[ Test except1.c ]--
+nachos 5.0j initializing... config interrupt timer processor console user-check grader
+
+roses are red
+violets are blue
+I love Nachos
+and so do you
+
+
+success
+
+--[ Test exit1.c ]--
+nachos 5.0j initializing... config interrupt timer processor console user-check grader
+
+success
+
+
